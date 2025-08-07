@@ -1,0 +1,67 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title Кинобездна – Target Container Diagram
+
+Person(web, "Web Browser")
+Person(mobile, "Mobile App")
+Person(tv, "Smart TV")
+
+System_Boundary(cinema, "Cinema Abyss") {
+  Container(gateway, "API Gateway / Proxy", "Go", "Единая точка входа, Strangler Fig, маршрутизация")
+  Container(auth, "Auth & Users Service", "Go", "Аутентификация и управление пользователями")
+  Container(metadata, "Metadata Service", "Go", "Метаданные о фильмах")
+  Container(catalog, "Catalog Service", "Go", "Каталог и поиск контента")
+  Container(video, "Video Streaming Service", "Go", "Раздача видеопотока")
+  Container(subscription, "Subscription Service", "Go", "Подписки и биллинг")
+  Container(payment, "Payment Service", "Go", "Платежи")
+  Container(discount, "Discount Service", "Go", "Скидки, промокоды, партнёрские программы")
+  Container(events, "Events Service", "Go", "MVP, продюсеры/консьюмеры Kafka")
+  ContainerDb(auth_db, "Users DB", "PostgreSQL")
+  ContainerDb(metadata_db, "Metadata DB", "PostgreSQL")
+  ContainerDb(catalog_db, "Catalog DB", "PostgreSQL")
+  ContainerDb(video_store, "Video Storage", "Object Storage")
+  ContainerDb(subscription_db, "Subscription DB", "PostgreSQL")
+  ContainerDb(payment_db, "Payments DB", "PostgreSQL")
+  ContainerDb(discount_db, "Discounts DB", "PostgreSQL")
+  Container(kafka, "Kafka Cluster", "Kafka", "Шина событий")
+}
+
+System_Ext(ext_rcm, "Recommendation System")
+System_Ext(ext_payment, "Payment Gateways")
+System_Ext(ext_loyalty, "Loyalty Partners")
+
+Rel(web, gateway, "HTTPS")
+Rel(mobile, gateway, "HTTPS")
+Rel(tv, gateway, "HTTPS")
+
+Rel(gateway, auth, "REST")
+Rel(gateway, metadata, "REST")
+Rel(gateway, catalog, "REST")
+Rel(gateway, video, "REST")
+Rel(gateway, subscription, "REST")
+Rel(gateway, payment, "REST")
+Rel(gateway, discount, "REST")
+Rel(gateway, events, "REST")
+
+Rel(events, kafka, "Publishes / Consumes")
+Rel(auth, kafka, "Publishes events")
+Rel(payment, kafka, "Publishes events")
+Rel(subscription, kafka, "Publishes events")
+Rel(metadata, kafka, "Publishes events")
+Rel(catalog, kafka, "Publishes events")
+
+Rel(payment, ext_payment, "PCI-DSS API")
+Rel(metadata, ext_rcm, "Film Data")
+Rel(discount, ext_loyalty, "Loyalty API")
+Rel(subscription, discount, "Internal REST")
+
+Rel(auth, auth_db, "JDBC")
+Rel(metadata, metadata_db, "JDBC")
+Rel(catalog, catalog_db, "JDBC")
+Rel(video, video_store, "S3 API")
+Rel(subscription, subscription_db, "JDBC")
+Rel(payment, payment_db, "JDBC")
+Rel(discount, discount_db, "JDBC")
+
+@enduml 
