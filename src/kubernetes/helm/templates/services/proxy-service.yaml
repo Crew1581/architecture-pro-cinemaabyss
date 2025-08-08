@@ -25,6 +25,7 @@ spec:
     spec:
       imagePullSecrets:
         - name: dockerconfigjson
+      dnsPolicy: ClusterFirstWithHostNet
       containers:
       - name: proxy-service
         image: "{{ .Values.proxyService.image.repository }}:{{ .Values.proxyService.image.tag }}"

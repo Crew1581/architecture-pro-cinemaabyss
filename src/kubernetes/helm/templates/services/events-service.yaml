@@ -25,6 +25,7 @@ spec:
     spec:
       imagePullSecrets:
         - name: dockerconfigjson
+      dnsPolicy: ClusterFirstWithHostNet
       containers:
       - name: events-service
         image: "{{ .Values.eventsService.image.repository }}:{{ .Values.eventsService.image.tag }}"

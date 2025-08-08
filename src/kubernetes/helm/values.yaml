@@ -5,7 +5,8 @@ global:
 
 # Image pull secrets
 imagePullSecrets:
-  dockerconfigjson: ewoJImF1dGhzIjogewoJCSJnaGNyLmlvIjogewoJCQkiYXV0aCI6
+  # Provide raw JSON content of ~/.docker/config.json here or pass via --set-file imagePullSecrets.dockerconfigjson=$HOME/.docker/config.json
+  dockerconfigjson: "{}"
 # Database configuration
 database:
   host: postgres
