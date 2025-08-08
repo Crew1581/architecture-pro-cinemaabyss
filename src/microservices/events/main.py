@@ -4,6 +4,7 @@ from datetime import datetime
 import json
 import asyncio
 from typing import Any, Dict
+import logging
 
 from fastapi import FastAPI, Request, Response, status
 from kafka import KafkaProducer, KafkaConsumer
@@ -13,6 +14,8 @@ app = FastAPI(title="CinemaAbyss Events Service", version="1.0.0")
 
 PORT = int(os.getenv("PORT", "8082"))
 KAFKA_BROKERS = os.getenv("KAFKA_BROKERS", "kafka:9092")
+
+logging.basicConfig(level=logging.INFO)
 
 producer = KafkaProducer(
     bootstrap_servers=KAFKA_BROKERS.split(","),
@@ -30,7 +33,7 @@ async def consume_topic(topic: str):
         enable_auto_commit=True,
     )
     for message in consumer:
-        app.logger.info(f"Consumed from {topic}: {message.value}")
+        logging.info(f"Consumed from {topic}: {message.value}")
 
 @app.on_event("startup")
 async def startup_event():
@@ -55,6 +58,7 @@ def _send_event(topic: str, payload: Dict[str, Any]):
     }
     try:
         record_metadata = producer.send(topic, event).get(timeout=10)
+        logging.info(f"Produced to {topic}: {event}")
         return {
             "status": "success",
             "partition": record_metadata.partition,

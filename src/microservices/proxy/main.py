@@ -33,12 +33,10 @@ def _select_movies_backend() -> str:
     return MONOLITH_URL
 
 async def _forward(request: Request, base_url: str) -> StarletteResponse:
-    """Forward the incoming request to base_url preserving path, query, method, body."""
     url = httpx.URL(base_url + request.url.path)
     if request.url.query:
         url = url.copy_with(query=request.url.query)
 
-    # Prepare headers, exclude host & content-length to let httpx set them
     headers = {key: value for key, value in request.headers.items() if key.lower() not in {"host", "content-length"}}
 
     try:
@@ -52,13 +50,11 @@ async def _forward(request: Request, base_url: str) -> StarletteResponse:
     except httpx.RequestError as exc:
         return JSONResponse(status_code=502, content={"error": f"Upstream request failed: {exc}"})
 
-# Proxy routes
 
 @app.api_route("/api/{full_path:path}", methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"])
 async def proxy_api(full_path: str, request: Request):
     original_path = "/api/" + full_path
 
-    # Determine backend
     if original_path.startswith("/api/movies"):
         backend = _select_movies_backend()
     elif original_path.startswith("/api/events"):
@@ -68,7 +64,6 @@ async def proxy_api(full_path: str, request: Request):
 
     return await _forward(request, backend)
 
-# Entry point for uvicorn if running via `python main.py`
 if __name__ == "__main__":
     import uvicorn
 
