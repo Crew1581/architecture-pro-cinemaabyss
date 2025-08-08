@@ -23,9 +23,28 @@ spec:
       labels:
         app: events-service
     spec:
+      imagePullSecrets:
+        - name: dockerconfigjson
+      dnsPolicy: ClusterFirstWithHostNet
       containers:
       - name: events-service
-       .... тут
+        image: "{{ .Values.eventsService.image.repository }}:{{ .Values.eventsService.image.tag }}"
+        imagePullPolicy: {{ .Values.eventsService.image.pullPolicy }}
+        ports:
+        - containerPort: 8082
+        env:
+        - name: PORT
+          value: "8082"
+        - name: KAFKA_BROKERS
+          value: "kafka:9092"
+        resources:
+{{ toYaml .Values.eventsService.resources | indent 10 }}
+        readinessProbe:
+          httpGet:
+            path: /api/events/health
+            port: 8082
+          initialDelaySeconds: 5
+          periodSeconds: 10
 ---
 apiVersion: v1
 kind: Service
@@ -37,5 +56,10 @@ metadata:
     app.kubernetes.io/name: {{ include "cinemaabyss.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
 spec:
- ........ и тут
+  selector:
+    app: events-service
+  ports:
+  - port: {{ .Values.eventsService.service.port }}
+    targetPort: {{ .Values.eventsService.service.targetPort }}
+  type: {{ .Values.eventsService.service.type }}
 {{- end }}
